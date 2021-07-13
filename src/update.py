@@ -52,7 +52,19 @@ class LocalUpdate(object):
                 optimizer.step()
         return model.state_dict()
 
-
+    def train2(self, model):
+        model.train()
+        train_optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
+        for iter in range(self.args.local_ep):
+            for idx, a in enumerate(self.trainloader):
+                (pos_1, pos_2), _ = a
+                pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
+                feature_1, out_1 = model(pos_1)
+                feature_2, out_2 = model(pos_2)
+                out_1_norm = (out_1 - out_1.mean(dim=0)) / out_1.std(dim=0)
+                out_2_norm = (out_2 - out_2.mean(dim=0)) / out_2.std(dim=0)
+        return model.state_dict()
+        
 
     def train(self, net):
         train_optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-6)
@@ -60,8 +72,6 @@ class LocalUpdate(object):
         # total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
         total_loss, total_num, train_bar = 0.0, 0, self.trainloader
         for data_tuple in train_bar:
-            print("4")
-            print(len(data_tuple), len(data_tuple[0]))
             (pos_1, pos_2), _ = data_tuple
             pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
             feature_1, out_1 = net(pos_1)
