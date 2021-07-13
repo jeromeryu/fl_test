@@ -55,11 +55,15 @@ class LocalUpdate(object):
 
 
     def train(self, net):
+        print("0")
         train_optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-6)
-
+        print("1")
         net.train()
+        print("2")
         total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
+        print("3")
         for data_tuple in train_bar:
+            print("4")
             print(len(data_tuple), len(data_tuple[0]))
             (pos_1, pos_2), _ = data_tuple
             pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
