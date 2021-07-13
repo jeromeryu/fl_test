@@ -52,63 +52,51 @@ class LocalUpdate(object):
                 optimizer.step()
         return model.state_dict()
 
-    def train2(self, model):
-        model.train()
-        train_optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
-        for iter in range(self.args.local_ep):
-            for idx, a in enumerate(self.trainloader):
-                (pos_1, pos_2), _ = a
-                pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
-                feature_1, out_1 = model(pos_1)
-                feature_2, out_2 = model(pos_2)
-                out_1_norm = (out_1 - out_1.mean(dim=0)) / out_1.std(dim=0)
-                out_2_norm = (out_2 - out_2.mean(dim=0)) / out_2.std(dim=0)
-        return model.state_dict()
-        
 
     def train(self, net):
         train_optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-6)
         net.train()
         # total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
-        total_loss, total_num, train_bar = 0.0, 0, self.trainloader
-        for data_tuple in train_bar:
-            (pos_1, pos_2), _ = data_tuple
-            pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
-            feature_1, out_1 = net(pos_1)
-            feature_2, out_2 = net(pos_2)
-            # Barlow Twins
-            
-            # normalize the representations along the batch dimension
-            out_1_norm = (out_1 - out_1.mean(dim=0)) / out_1.std(dim=0)
-            out_2_norm = (out_2 - out_2.mean(dim=0)) / out_2.std(dim=0)
-            
-            # cross-correlation matrix
-            c = torch.matmul(out_1_norm.T, out_2_norm) / 128 #batch_size
+        for iter in range(self.args.local_ep):
+            total_loss, total_num, train_bar = 0.0, 0, self.trainloader
+            for data_tuple in train_bar:
+                (pos_1, pos_2), _ = data_tuple
+                pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
+                feature_1, out_1 = net(pos_1)
+                feature_2, out_2 = net(pos_2)
+                # Barlow Twins
+                
+                # normalize the representations along the batch dimension
+                out_1_norm = (out_1 - out_1.mean(dim=0)) / out_1.std(dim=0)
+                out_2_norm = (out_2 - out_2.mean(dim=0)) / out_2.std(dim=0)
+                
+                # cross-correlation matrix
+                c = torch.matmul(out_1_norm.T, out_2_norm) / 128 #batch_size
 
-            # loss
-            on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
-            # if corr_neg_one is False:
-            #     # the loss described in the original Barlow Twin's paper
-            #     # encouraging off_diag to be zero
-            off_diag = off_diagonal(c).pow_(2).sum()
-            # else:
-            #     # inspired by HSIC
-            #     # encouraging off_diag to be negative ones
-            #     off_diag = off_diagonal(c).add_(1).pow_(2).sum()
-            loss = on_diag + 0.0078125 * off_diag
-            
+                # loss
+                on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
+                # if corr_neg_one is False:
+                #     # the loss described in the original Barlow Twin's paper
+                #     # encouraging off_diag to be zero
+                off_diag = off_diagonal(c).pow_(2).sum()
+                # else:
+                #     # inspired by HSIC
+                #     # encouraging off_diag to be negative ones
+                #     off_diag = off_diagonal(c).add_(1).pow_(2).sum()
+                loss = on_diag + 0.0078125 * off_diag
+                
 
-            train_optimizer.zero_grad()
-            loss.backward()
-            train_optimizer.step()
+                train_optimizer.zero_grad()
+                loss.backward()
+                train_optimizer.step()
 
-            total_num += 128 #batch_size
-            total_loss += loss.item() * 128 #batch_size
-            # if corr_neg_one is True:
-            #     off_corr = -1
-            # else:
-            off_corr = 0
-            # train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f} off_corr:{} lmbda:{:.4f} bsz:{} f_dim:{} dataset: {}'.format(\
-            #                         epoch, epochs, total_loss / total_num, off_corr, lmbda, batch_size, feature_dim, dataset))
-        # return total_loss / total_num
+                total_num += 128 #batch_size
+                total_loss += loss.item() * 128 #batch_size
+                # if corr_neg_one is True:
+                #     off_corr = -1
+                # else:
+                off_corr = 0
+                # train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f} off_corr:{} lmbda:{:.4f} bsz:{} f_dim:{} dataset: {}'.format(\
+                #                         epoch, epochs, total_loss / total_num, off_corr, lmbda, batch_size, feature_dim, dataset))
+            # return total_loss / total_num
         return net.state_dict()

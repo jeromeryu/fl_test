@@ -98,9 +98,7 @@ if __name__ == '__main__':
                                       idxs=user_groups[idx])
             # w = local_model.update_weights(
             #     model=copy.deepcopy(global_model))
-            print("train ", idx)
-            # w = local_model.train(net = copy.deepcopy(global_model))
-            w = local_model.train2(model = copy.deepcopy(global_model))
+            w = local_model.train(net = copy.deepcopy(global_model))
             local_weights.append(copy.deepcopy(w))
 
         # update global weights
