@@ -16,7 +16,8 @@ class CifarPairTransform:
                 transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
                 transforms.RandomGrayscale(p=0.2),
                 transforms.ToTensor(),
-                transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])])
+                # transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])])
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
         else:
             self.transform = transforms.Compose([
                     transforms.ToTensor(),
@@ -45,12 +46,12 @@ def get_dataset(args):
         # train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
         #                                transform=apply_transform)
 
-        train_dataset = datasets.CIFAR10(root='data', train=True, \
+        train_dataset = datasets.CIFAR10(root='data', train=True, 
                             transform=CifarPairTransform(train_transform = True), download=True)
 
         # test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
         #                               transform=apply_transform)
-        test_dataset = datasets.CIFAR10(root='data', train=False, \
+        test_dataset = datasets.CIFAR10(root='data', train=False, 
                             transform=CifarPairTransform(train_transform = False), download=True)
 
         # sample training data amongst users
