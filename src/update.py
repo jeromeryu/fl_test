@@ -60,6 +60,7 @@ class LocalUpdate(object):
         net.train()
         total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
         for data_tuple in train_bar:
+            print(data_tuple)
             (pos_1, pos_2), _ = data_tuple
             pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
             feature_1, out_1 = net(pos_1)

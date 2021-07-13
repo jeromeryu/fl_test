@@ -85,7 +85,8 @@ if __name__ == '__main__':
 
     bst_acc = -1
     description = "inference acc={:.4f}% loss={:.2f}, best_acc = {:.2f}%"
-    for epoch in tqdm(range(args.epochs)):
+    # for epoch in tqdm(range(args.epochs)):
+    for epoch in range(args.epochs):
         local_weights = []
         global_model.train()
         m = max(int(args.frac * args.num_users), 1)
