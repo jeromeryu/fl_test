@@ -1,3 +1,9 @@
+Merging 2 repositorys to make unsupervised federated learning
+https://github.com/yaohungt/Barlow-Twins-HSIC
+https://github.com/devilzj/FedAvg
+
+
+
 # FedAvg
 This is a implemention of FedAvg in paper [Communication-Efficient Learning of Deep Networks from Decentralized Data](https://arxiv.org/abs/1602.05629).
 
