@@ -10,6 +10,7 @@ import warnings
 
 import numpy as np
 from tqdm import tqdm
+from thop import profile, clever_format
 
 warnings.filterwarnings('ignore')
 import torch
@@ -82,6 +83,7 @@ if __name__ == '__main__':
     #     global_model = CNNCifar(args).cuda()
 
     global_model = Model().cuda()
+    flops, params = profile(global_model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
 
     bst_acc = -1
     description = "inference acc={:.4f}% loss={:.2f}, best_acc = {:.2f}%"
