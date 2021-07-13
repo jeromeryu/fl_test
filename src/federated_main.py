@@ -94,6 +94,7 @@ if __name__ == '__main__':
         m = max(int(args.frac * args.num_users), 1)
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         for idx in idxs_users:
+            print("idx", idx)
             local_model = LocalUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx])
             # w = local_model.update_weights(
@@ -104,10 +105,16 @@ if __name__ == '__main__':
         # update global weights
         global_weights = average_weights(local_weights)
 
+        print("here1")
+
         # update global weights
         global_model.load_state_dict(global_weights)
 
+        print("here2")
+
         test_acc, test_loss = inference(global_model, test_loader)
+
+        print("here3")
 
         # tf_writer.add_scalar('test_acc', test_acc, epoch)
         # tf_writer.add_scalar('test_loss', test_loss, epoch)
@@ -117,6 +124,8 @@ if __name__ == '__main__':
 
         logger_file.write(output_log + '\n')
         logger_file.flush()
+
+        print("here4")
 
         is_best = test_acc > bst_acc
         bst_acc = max(bst_acc, test_acc)
