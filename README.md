@@ -1,7 +1,11 @@
 Merging 2 repositorys to make unsupervised federated learning  
 https://github.com/yaohungt/Barlow-Twins-HSIC  
 https://github.com/devilzj/FedAvg  
+```shell
+python federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0.01 --local_ep=5 --local_bs=32
 
+```  
+run this code in src folder
 
 
 # FedAvg
