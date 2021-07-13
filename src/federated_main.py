@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 warnings.filterwarnings('ignore')
 import torch
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     exp_details(args)
 
     logger_file = open(os.path.join(cur_path + '/logs', args.store_name, 'log.txt'), 'w')
-    tf_writer = SummaryWriter(log_dir=os.path.join(cur_path + '/logs', args.store_name))
+    # tf_writer = SummaryWriter(log_dir=os.path.join(cur_path + '/logs', args.store_name))
 
     # load dataset and user groups
     train_dataset, test_dataset, user_groups = get_dataset(args)
@@ -106,8 +106,8 @@ if __name__ == '__main__':
 
         test_acc, test_loss = inference(global_model, test_loader)
 
-        tf_writer.add_scalar('test_acc', test_acc, epoch)
-        tf_writer.add_scalar('test_loss', test_loss, epoch)
+        # tf_writer.add_scalar('test_acc', test_acc, epoch)
+        # tf_writer.add_scalar('test_loss', test_loss, epoch)
 
         output_log = 'After {} global rounds, Test acc: {}, inference loss: {}'.format(
             epoch + 1, test_acc, test_loss)
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         save_checkpoint(global_model.state_dict(), is_best)
 
 """
-python3 federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0.01 --local_ep=5 --local_bs=32
+python federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0.01 --local_ep=5 --local_bs=32
 
 python3 federated_main.py --model=cnn --dataset=mnist --iid=1 --epochs=100 --lr=0.01 --local_ep=5 --local_bs=32
 
