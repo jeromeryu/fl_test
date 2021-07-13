@@ -16,7 +16,7 @@ def get_dataset(args):
     """
 
     if args.dataset == 'cifar':
-        data_dir = '/youtu-face-identify-public/jiezhang/data'
+        data_dir = 'data'
         apply_transform = transforms.Compose(
             [transforms.ToTensor(),
              transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -36,7 +36,7 @@ def get_dataset(args):
 
     elif args.dataset == 'mnist':
 
-        data_dir = '/youtu-face-identify-public/jiezhang/data'
+        data_dir = 'data'
 
         apply_transform = transforms.Compose([
             transforms.ToTensor(),
