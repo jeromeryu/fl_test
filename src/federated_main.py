@@ -90,12 +90,12 @@ if __name__ == '__main__':
         global_model.train()
         m = max(int(args.frac * args.num_users), 1)
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
-
         for idx in idxs_users:
             local_model = LocalUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx])
             # w = local_model.update_weights(
             #     model=copy.deepcopy(global_model))
+            print("train ", idx)
             w = local_model.train(net = copy.deepcopy(global_model))
             local_weights.append(copy.deepcopy(w))
 
