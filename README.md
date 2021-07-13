@@ -1,7 +1,6 @@
-Merging 2 repositorys to make unsupervised federated learning
-
-https://github.com/yaohungt/Barlow-Twins-HSIC
-https://github.com/devilzj/FedAvg
+Merging 2 repositorys to make unsupervised federated learning  
+https://github.com/yaohungt/Barlow-Twins-HSIC  
+https://github.com/devilzj/FedAvg  
 
 
 
