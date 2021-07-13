@@ -17,7 +17,7 @@ from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate
-from models import CNNMnist, CNNCifar
+from models import CNNMnist, CNNCifar, Model
 from utils import get_dataset, average_weights, exp_details
 import torch.nn.functional as F
 
@@ -41,12 +41,13 @@ def inference(model, test_loader):
 
 def prepare_folders(cur_path):
     folders_util = [
-        os.path.join(cur_path + '/logs', args.store_name),
-        os.path.join(cur_path + '/checkpoints', args.store_name)]
+        os.path.join(cur_path , 'logs', args.store_name),
+        os.path.join(cur_path , 'checkpoints', args.store_name)]
     for folder in folders_util:
         if not os.path.exists(folder):
             print('creating folder ' + folder)
-            os.mkdir(folder)
+            # os.mkdir(folder)
+            os.makedirs(folder)
 
 
 def save_checkpoint(state, is_best):
@@ -75,10 +76,12 @@ if __name__ == '__main__':
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128,
                                               shuffle=False, num_workers=4)
     # BUILD MODEL
-    if args.dataset == 'mnist':
-        global_model = CNNMnist(args).cuda()
-    elif args.dataset == 'cifar':
-        global_model = CNNCifar(args).cuda()
+    # if args.dataset == 'mnist':
+        # global_model = CNNMnist(args).cuda()
+    # elif args.dataset == 'cifar':
+    #     global_model = CNNCifar(args).cuda()
+
+    global_model = Model().cuda()
 
     bst_acc = -1
     description = "inference acc={:.4f}% loss={:.2f}, best_acc = {:.2f}%"
