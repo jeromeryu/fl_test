@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # tf_writer = SummaryWriter(log_dir=os.path.join(cur_path + '/logs', args.store_name))
 
     # load dataset and user groups
-    train_dataset, memory_dataset, test_dataset, user_groups, c = get_dataset(args)
+    train_dataset, memory_dataset, test_dataset, user_groups= get_dataset(args)
     # test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128,
     #                                           shuffle=False, num_workers=4)
 
