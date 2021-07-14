@@ -23,6 +23,54 @@ from utils import get_dataset, average_weights, exp_details
 import torch.nn.functional as F
 
 
+
+# test for one epoch, use weighted knn to find the most similar images' label to assign the test image
+def test(net, memory_data_loader, test_data_loader):
+    net.eval()
+    total_top1, total_top5, total_num, feature_bank, target_bank = 0.0, 0.0, 0, [], []
+    with torch.no_grad():
+        # generate feature bank and target bank
+        for data_tuple in tqdm(memory_data_loader, desc='Feature extracting'):
+            (data, _), target = data_tuple
+            target_bank.append(target)
+            feature, out = net(data.cuda(non_blocking=True))
+            feature_bank.append(feature)
+        # [D, N]
+        feature_bank = torch.cat(feature_bank, dim=0).t().contiguous()
+        # [N]
+        feature_labels = torch.cat(target_bank, dim=0).contiguous().to(feature_bank.device)
+        # loop test data to predict the label by weighted knn search
+        test_bar = tqdm(test_data_loader)
+        for data_tuple in test_bar:
+            (data, _), target = data_tuple
+            data, target = data.cuda(non_blocking=True), target.cuda(non_blocking=True)
+            feature, out = net(data)
+
+            total_num += data.size(0)
+            # compute cos similarity between each feature vector and feature bank ---> [B, N]
+            sim_matrix = torch.mm(feature, feature_bank)
+            # [B, K]
+            sim_weight, sim_indices = sim_matrix.topk(k=k, dim=-1)
+            # [B, K]
+            sim_labels = torch.gather(feature_labels.expand(data.size(0), -1), dim=-1, index=sim_indices)
+            sim_weight = (sim_weight / 0.5).exp() #temperature = 0.5
+
+            # counts for each class
+            one_hot_label = torch.zeros(data.size(0) * 200, c, device=sim_labels.device) #k=200, 
+            # [B*K, C]
+            one_hot_label = one_hot_label.scatter(dim=-1, index=sim_labels.view(-1, 1), value=1.0)
+            # weighted score ---> [B, C]
+            pred_scores = torch.sum(one_hot_label.view(data.size(0), -1, c) * sim_weight.unsqueeze(dim=-1), dim=1)
+
+            pred_labels = pred_scores.argsort(dim=-1, descending=True)
+            total_top1 += torch.sum((pred_labels[:, :1] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
+            total_top5 += torch.sum((pred_labels[:, :5] == target.unsqueeze(dim=-1)).any(dim=-1).float()).item()
+            test_bar.set_description('Test Epoch: [{}/{}] Acc@1:{:.2f}% Acc@5:{:.2f}%'
+                                     .format(epoch, args.epochs, total_top1 / total_num * 100, total_top5 / total_num * 100))
+
+    return total_top1 / total_num * 100, total_top5 / total_num * 100
+
+
 def inference(model, test_loader):
     model.eval()
     test_loss = 0.0
@@ -73,9 +121,17 @@ if __name__ == '__main__':
     # tf_writer = SummaryWriter(log_dir=os.path.join(cur_path + '/logs', args.store_name))
 
     # load dataset and user groups
-    train_dataset, test_dataset, user_groups = get_dataset(args)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128,
-                                              shuffle=False, num_workers=4)
+    train_dataset, memory_dataset, test_dataset, user_groups, c = get_dataset(args)
+    # test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=128,
+    #                                           shuffle=False, num_workers=4)
+
+    memory_loader = torch.utils.data.DataLoader(memory_dataset, batch_size=512, shuffle=False,
+            num_workers=16, pin_memory=True)
+
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512,shuffle=False, 
+                num_workers=16, pin_memory=True)
+    c = len(memory_dataset.classes)
+
     # BUILD MODEL
     # if args.dataset == 'mnist':
         # global_model = CNNMnist(args).cuda()
@@ -112,26 +168,34 @@ if __name__ == '__main__':
 
         print("here2")
 
-        test_acc, test_loss = inference(global_model, test_loader)
+        # test_acc, test_loss = inference(global_model, test_loader)
+
+        test_acc_1, test_acc_5 = test(global_model, memory_loader, test_loader)
+
 
         print("here3")
 
         # tf_writer.add_scalar('test_acc', test_acc, epoch)
         # tf_writer.add_scalar('test_loss', test_loss, epoch)
 
-        output_log = 'After {} global rounds, Test acc: {}, inference loss: {}'.format(
-            epoch + 1, test_acc, test_loss)
+        # output_log = 'After {} global rounds, Test acc: {}, inference loss: {}'.format(
+        #     epoch + 1, test_acc, test_loss)
 
+
+
+        output_log = 'After {} global rounds, Test acc1: {}, Test acc5: {}'.format(
+            epoch + 1, test_acc_1, test_acc_5)
+        print(output_log)
         logger_file.write(output_log + '\n')
         logger_file.flush()
 
         print("here4")
 
-        is_best = test_acc > bst_acc
-        bst_acc = max(bst_acc, test_acc)
-        print(description.format(test_acc, test_loss, bst_acc))
+        # is_best = test_acc > bst_acc
+        # bst_acc = max(bst_acc, test_acc)
+        # print(description.format(test_acc, test_loss, bst_acc))
         
-        save_checkpoint(global_model.state_dict(), is_best)
+        # save_checkpoint(global_model.state_dict(), is_best)
 
 """
 python federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0.01 --local_ep=5 --local_bs=32

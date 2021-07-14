@@ -51,6 +51,9 @@ def get_dataset(args):
 
         # test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
         #                               transform=apply_transform)
+        memory_dataset = datasets.CIFAR10(root='data', train=True,
+                        transform=CifarPairTransform(train_transform = False), download=True)
+
         test_dataset = datasets.CIFAR10(root='data', train=False, 
                             transform=CifarPairTransform(train_transform = False), download=True)
 
@@ -83,7 +86,7 @@ def get_dataset(args):
 
             user_groups = mnist_noniid(train_dataset, args.num_users)
 
-    return train_dataset, test_dataset, user_groups
+    return train_dataset, memory_dataset, test_dataset, user_groups
 
 
 def average_weights(w):
