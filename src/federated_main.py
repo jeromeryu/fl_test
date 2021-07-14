@@ -126,10 +126,10 @@ if __name__ == '__main__':
     #                                           shuffle=False, num_workers=4)
 
     memory_loader = torch.utils.data.DataLoader(memory_dataset, batch_size=512, shuffle=False,
-            num_workers=16, pin_memory=True)
+            num_workers=16, pin_memory=False)
 
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512,shuffle=False, 
-                num_workers=16, pin_memory=True)
+                num_workers=16, pin_memory=False)
     c = len(memory_dataset.classes)
 
     # BUILD MODEL

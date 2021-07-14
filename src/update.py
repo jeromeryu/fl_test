@@ -36,7 +36,7 @@ class LocalUpdate(object):
     def __init__(self, args, dataset, idxs):
         self.args = args
         self.trainloader = DataLoader(DatasetSplit(dataset, idxs),
-                            batch_size=self.args.local_bs, shuffle=True, num_workers=16, pin_memory=True, drop_last=True)
+                            batch_size=self.args.local_bs, shuffle=True, num_workers=16, pin_memory=False, drop_last=True)
 
 
     def update_weights(self, model):
