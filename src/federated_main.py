@@ -152,8 +152,8 @@ if __name__ == '__main__':
     # for epoch in range(args.epochs):
         local_weights = []
         global_model.train()
-        # m = max(int(args.frac * args.num_users), 1)
-        m = 1
+        m = max(int(args.frac * args.num_users), 1)
+        # m = 1
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         for idx in idxs_users:
             local_model = LocalUpdate(args=args, dataset=train_dataset,
