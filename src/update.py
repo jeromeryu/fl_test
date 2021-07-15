@@ -4,7 +4,7 @@
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, dataset
 import torch.nn.functional as F
 import torch.optim as optim
 from tqdm import tqdm
@@ -35,7 +35,8 @@ class DatasetSplit(Dataset):
 class LocalUpdate(object):
     def __init__(self, args, dataset, idxs):
         self.args = args
-        self.trainloader = DataLoader(DatasetSplit(dataset, idxs),
+        self.dataset = DatasetSplit(dataset, idxs)
+        self.trainloader = DataLoader(self.dataset,
                             batch_size=self.args.local_bs, shuffle=True, num_workers=4, pin_memory=False, drop_last=True)
 
 
@@ -98,7 +99,7 @@ class LocalUpdate(object):
                 #     off_corr = -1
                 # else:
                 off_corr = 0
-                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}   bsz:{} '.format(
-                                        iter, self.args.local_ep , total_loss / total_num, batch_size))
+                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f} bsz:{} len:{} '.format(
+                                        iter, self.args.local_ep , total_loss / total_num, batch_size, len(self.dataset)))
             # return total_loss / total_num
         return net.state_dict()
