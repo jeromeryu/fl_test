@@ -131,10 +131,10 @@ if __name__ == '__main__':
     #                                           shuffle=False, num_workers=4)
 
     memory_loader = torch.utils.data.DataLoader(memory_dataset, batch_size=512, shuffle=False,
-            num_workers=16, pin_memory=False)
+            num_workers=16, pin_memory=True)
 
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512,shuffle=False, 
-                num_workers=16, pin_memory=False)
+                num_workers=16, pin_memory=True)
     c = len(memory_dataset.classes)
 
     # BUILD MODEL
@@ -152,7 +152,8 @@ if __name__ == '__main__':
     # for epoch in range(args.epochs):
         local_weights = []
         global_model.train()
-        m = max(int(args.frac * args.num_users), 1)
+        # m = max(int(args.frac * args.num_users), 1)
+        m = 1
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         for idx in idxs_users:
             print("idx", idx)
