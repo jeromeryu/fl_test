@@ -55,7 +55,7 @@ class LocalUpdate(object):
         return model.state_dict()
 
 
-    def train(self, net):
+    def train(self, net, batch_size):
         train_optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-6)
         net.train()
         # total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
@@ -73,7 +73,7 @@ class LocalUpdate(object):
                 out_2_norm = (out_2 - out_2.mean(dim=0)) / out_2.std(dim=0)
                 
                 # cross-correlation matrix
-                c = torch.matmul(out_1_norm.T, out_2_norm) / 128 #batch_size
+                c = torch.matmul(out_1_norm.T, out_2_norm) / batch_size #batch_size
 
                 # loss
                 on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
@@ -92,8 +92,8 @@ class LocalUpdate(object):
                 loss.backward()
                 train_optimizer.step()
 
-                total_num += 128 #batch_size
-                total_loss += loss.item() * 128 #batch_size
+                total_num += batch_size #batch_size
+                total_loss += loss.item() * batch_size #batch_size
                 # if corr_neg_one is True:
                 #     off_corr = -1
                 # else:

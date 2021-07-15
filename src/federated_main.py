@@ -155,12 +155,12 @@ if __name__ == '__main__':
         m = max(int(args.frac * args.num_users), 1)
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         for idx in idxs_users:
-            # print("idx", idx)
+            print("idx", idx)
             local_model = LocalUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx])
             # w = local_model.update_weights(
             #     model=copy.deepcopy(global_model))
-            w = local_model.train(net = copy.deepcopy(global_model))
+            w = local_model.train(net = copy.deepcopy(global_model), batch_size=args.local_bs)
             local_weights.append(copy.deepcopy(w))
 
         # update global weights
@@ -202,4 +202,8 @@ python federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0
 
 python3 federated_main.py --model=cnn --dataset=mnist --iid=1 --epochs=100 --lr=0.01 --local_ep=5 --local_bs=32
 
+python federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0.01 --local_ep=5 --local_bs=128 --num_users=10 --frac=0.5
+
 """
+
+
