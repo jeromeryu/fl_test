@@ -164,8 +164,8 @@ if __name__ == '__main__':
             local_weights.append(copy.deepcopy(w))
 
         # update global weights
-        # global_weights = average_weights(local_weights)
-        global_weights = local_weights[0]
+        global_weights = average_weights(local_weights)
+        # global_weights = local_weights[0]
 
 
         # update global weights
