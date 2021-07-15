@@ -117,6 +117,11 @@ if __name__ == '__main__':
     prepare_folders(cur_path)
     exp_details(args)
 
+    GPU_NUM = 1
+    device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
+    torch.cuda.set_device(device) # change allocation of current GPU
+
+
     logger_file = open(os.path.join(cur_path + '/logs', args.store_name, 'log.txt'), 'w')
     # tf_writer = SummaryWriter(log_dir=os.path.join(cur_path + '/logs', args.store_name))
 
