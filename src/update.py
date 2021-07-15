@@ -36,7 +36,7 @@ class LocalUpdate(object):
     def __init__(self, args, dataset, idxs):
         self.args = args
         self.trainloader = DataLoader(DatasetSplit(dataset, idxs),
-                            batch_size=self.args.local_bs, shuffle=True, num_workers=16, pin_memory=True, drop_last=True)
+                            batch_size=self.args.local_bs, shuffle=True, num_workers=4, pin_memory=False, drop_last=True)
 
 
     def update_weights(self, model):
@@ -60,7 +60,7 @@ class LocalUpdate(object):
         net.train()
         # total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
         for iter in range(self.args.local_ep):
-            total_loss, total_num, train_bar = 0.0, 0, self.trainloader
+            total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
             for data_tuple in train_bar:
                 (pos_1, pos_2), _ = data_tuple
                 pos_1, pos_2 = pos_1.cuda(non_blocking=True), pos_2.cuda(non_blocking=True)
@@ -98,7 +98,7 @@ class LocalUpdate(object):
                 #     off_corr = -1
                 # else:
                 off_corr = 0
-                # train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f} off_corr:{} lmbda:{:.4f} bsz:{} f_dim:{} dataset: {}'.format(\
-                #                         epoch, epochs, total_loss / total_num, off_corr, lmbda, batch_size, feature_dim, dataset))
+                train_bar.set_description('Train Epoch: [{}/{}] Loss: {:.4f}   bsz:{} '.format(
+                                        iter, self.args.local_ep , total_loss / total_num, batch_size))
             # return total_loss / total_num
         return net.state_dict()

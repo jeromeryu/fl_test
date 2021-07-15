@@ -131,10 +131,10 @@ if __name__ == '__main__':
     #                                           shuffle=False, num_workers=4)
 
     memory_loader = torch.utils.data.DataLoader(memory_dataset, batch_size=512, shuffle=False,
-            num_workers=16, pin_memory=True)
+            num_workers=4, pin_memory=False)
 
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=512,shuffle=False, 
-                num_workers=16, pin_memory=True)
+                num_workers=4, pin_memory=False)
     c = len(memory_dataset.classes)
 
     # BUILD MODEL
@@ -156,7 +156,6 @@ if __name__ == '__main__':
         m = 1
         idxs_users = np.random.choice(range(args.num_users), m, replace=False)
         for idx in idxs_users:
-            print("idx", idx)
             local_model = LocalUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx])
             # w = local_model.update_weights(
