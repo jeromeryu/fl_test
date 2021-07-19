@@ -192,11 +192,11 @@ if __name__ == '__main__':
         logger_file.flush()
 
 
-        # is_best = test_acc > bst_acc
-        # bst_acc = max(bst_acc, test_acc)
+        is_best = test_acc_1 > bst_acc
+        bst_acc = max(bst_acc, test_acc_1)
         # print(description.format(test_acc, test_loss, bst_acc))
         
-        # save_checkpoint(global_model.state_dict(), is_best)
+        save_checkpoint(global_model.state_dict(), is_best)
 
 """
 python federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0.01 --local_ep=5 --local_bs=32
