@@ -210,4 +210,4 @@ class BarlowTwins(torch.nn.Module):
         feature = torch.flatten(x, start_dim=1)
         # out = self.g(feature)
         out = self.projection(feature)
-        return F.normalize(out, dim=-1)
+        return F.normalize(out, dim=-1), F.normalize(out, dim=-1)
