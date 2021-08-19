@@ -21,6 +21,10 @@ from update import LocalUpdate
 from models import CNNMnist, CNNCifar, Model
 from utils import get_dataset, average_weights, exp_details
 import torch.nn.functional as F
+import linear
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import torch.optim as optim
 
 
 
@@ -187,17 +191,61 @@ if __name__ == '__main__':
         output_log = 'After {} global rounds, Test acc1: {}, Test acc5: {}'.format(
             epoch + 1, test_acc_1, test_acc_5)
         
+        print(output_log)
         
-        logger_file.write(output_log + '\n')
-        logger_file.flush()
+        # logger_file.write(output_log + '\n')
+        # logger_file.flush()
 
 
         is_best = test_acc_1 > bst_acc
         bst_acc = max(bst_acc, test_acc_1)
         # print(description.format(test_acc, test_loss, bst_acc))
         
-        save_checkpoint(global_model.state_dict(), is_best)
+        # save_checkpoint(global_model.state_dict(), is_best)
 
+    results = {'train_loss': [], 'train_acc@1': [], 'train_acc@5': [],
+            'test_loss': [], 'test_acc@1': [], 'test_acc@5': []}
+    
+    
+    train_transform = transforms.Compose([
+        transforms.RandomResizedCrop(32),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.8),
+        transforms.RandomGrayscale(p=0.2),
+        transforms.ToTensor(),
+        transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])])
+
+    test_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])])
+
+    train_data_linear = datasets.CIFAR10(root='data', train=True,
+                                    download=True, transform=train_transform)
+    test_data_linear = datasets.CIFAR10(root='data', train=False,
+                                    download=True, transform=test_transform)
+
+    train_loader_linear = DataLoader(train_data_linear, batch_size=args.batch_size, shuffle=True)
+    test_loader_linear = DataLoader(test_data_linear, batch_size=args.batch_size, shuffle=True)
+
+    net = linear.Net(num_class=len(train_data_linear.classes), net = global_model).to(device)
+    for param in net.f.parameters():
+        param.requires_grad = False
+    optimizer = optim.Adam(net.fc.parameters(), lr=1e-3, weight_decay=1e-6)
+
+
+    for epoch in range(1, args.linear_epochs + 1):
+        train_loss, train_acc_1, train_acc_5 = linear.train_val(net, train_loader_linear, optimizer)
+        results['train_loss'].append(train_loss)
+        results['train_acc@1'].append(train_acc_1)
+        results['train_acc@5'].append(train_acc_5)
+        test_loss, test_acc_1, test_acc_5 = linear.train_val(net, test_loader_linear, None)
+        results['test_loss'].append(test_loss)
+        results['test_acc@1'].append(test_acc_1)
+        results['test_acc@5'].append(test_acc_5)
+        
+        print('{} : {} {} {}'.format(epoch, test_loss, test_acc_1, test_acc_5))
+
+    
 """
 python federated_main.py --model=cnn --dataset=cifar --iid=1 --epochs=300 --lr=0.01 --local_ep=5 --local_bs=32
 
