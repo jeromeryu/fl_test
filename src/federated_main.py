@@ -18,7 +18,7 @@ import torch
 
 from options import args_parser
 from update import LocalUpdate
-from models import CNNMnist, CNNCifar, Model
+from models import CNNMnist, CNNCifar, Model, BarlowTwins
 from utils import get_dataset, average_weights, exp_details
 import torch.nn.functional as F
 import linear
@@ -147,7 +147,8 @@ if __name__ == '__main__':
     # elif args.dataset == 'cifar':
     #     global_model = CNNCifar(args).cuda()
 
-    global_model = Model().cuda()
+    # global_model = Model().cuda()
+    global_model = BarlowTwins().cuda()
     flops, params = profile(global_model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
 
     bst_acc = -1

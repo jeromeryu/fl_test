@@ -19,7 +19,7 @@ class Net(nn.Module):
         # encoder
         self.f = net
         # classifier
-        self.fc = nn.Linear(2048, num_class, bias=True)
+        self.fc = nn.Linear(512, num_class, bias=True)
         
 
     def forward(self, x):
