@@ -224,8 +224,8 @@ if __name__ == '__main__':
     test_data_linear = datasets.CIFAR10(root='data', train=False,
                                     download=True, transform=test_transform)
 
-    train_loader_linear = DataLoader(train_data_linear, batch_size=args.batch_size, shuffle=True)
-    test_loader_linear = DataLoader(test_data_linear, batch_size=args.batch_size, shuffle=True)
+    train_loader_linear = DataLoader(train_data_linear, batch_size=args.local_bs, shuffle=True)
+    test_loader_linear = DataLoader(test_data_linear, batch_size=args.local_bs, shuffle=True)
 
     net = linear.Net(num_class=len(train_data_linear.classes), net = global_model).to(device)
     for param in net.f.parameters():
