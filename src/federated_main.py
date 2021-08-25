@@ -6,6 +6,7 @@
 import copy
 import os
 import shutil
+from types import TracebackType
 import warnings
 
 import numpy as np
@@ -237,6 +238,8 @@ if __name__ == '__main__':
         # results['test_acc@5'].append(test_acc_5)
         
         print('{} : {} {} {}'.format(epoch, test_loss, test_acc_1, test_acc_5))
+        for param in net.f.parameters():
+            param.requires_grad = True
         
 
     # results = {'train_loss': [], 'train_acc@1': [], 'train_acc@5': [],
