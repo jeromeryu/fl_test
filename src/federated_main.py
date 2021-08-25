@@ -141,73 +141,12 @@ if __name__ == '__main__':
                 num_workers=4, pin_memory=False)
     c = len(memory_dataset.classes)
 
-    # BUILD MODEL
-    # if args.dataset == 'mnist':
-        # global_model = CNNMnist(args).cuda()
-    # elif args.dataset == 'cifar':
-    #     global_model = CNNCifar(args).cuda()
 
-    # global_model = Model().cuda()
     global_model = BarlowTwins().cuda()
     flops, params = profile(global_model, inputs=(torch.randn(1, 3, 32, 32).cuda(),))
 
-    bst_acc = -1
-    description = "inference acc={:.4f}% loss={:.2f}, best_acc = {:.2f}%"
-    for epoch in tqdm(range(args.epochs)):
-    # for epoch in range(args.epochs):
-        local_weights = []
-        global_model.train()
-        m = max(int(args.frac * args.num_users), 1)
-        # m = 1
-        idxs_users = np.random.choice(range(args.num_users), m, replace=False)
-        for idx in idxs_users:
-            local_model = LocalUpdate(args=args, dataset=train_dataset,
-                                      idxs=user_groups[idx])
-            # w = local_model.update_weights(
-            #     model=copy.deepcopy(global_model))
-            w = local_model.train(net = copy.deepcopy(global_model), batch_size=args.local_bs)
-            local_weights.append(copy.deepcopy(w))
 
-        # update global weights
-        global_weights = average_weights(local_weights)
-        # global_weights = local_weights[0]
-
-
-        # update global weights
-        global_model.load_state_dict(global_weights)
-
-        # test_acc, test_loss = inference(global_model, test_loader)
-
-        test_acc_1, test_acc_5 = test(global_model, memory_loader, test_loader)
-
-
-        # tf_writer.add_scalar('test_acc', test_acc, epoch)
-        # tf_writer.add_scalar('test_loss', test_loss, epoch)
-
-        # output_log = 'After {} global rounds, Test acc: {}, inference loss: {}'.format(
-        #     epoch + 1, test_acc, test_loss)
-
-
-
-        output_log = 'After {} global rounds, Test acc1: {}, Test acc5: {}'.format(
-            epoch + 1, test_acc_1, test_acc_5)
-        
-        print(output_log)
-        
-        # logger_file.write(output_log + '\n')
-        # logger_file.flush()
-
-
-        is_best = test_acc_1 > bst_acc
-        bst_acc = max(bst_acc, test_acc_1)
-        # print(description.format(test_acc, test_loss, bst_acc))
-        
-        # save_checkpoint(global_model.state_dict(), is_best)
-
-    results = {'train_loss': [], 'train_acc@1': [], 'train_acc@5': [],
-            'test_loss': [], 'test_acc@1': [], 'test_acc@5': []}
-    
-    
+    #for linear
     train_transform = transforms.Compose([
         transforms.RandomResizedCrop(32),
         transforms.RandomHorizontalFlip(p=0.5),
@@ -228,23 +167,100 @@ if __name__ == '__main__':
     train_loader_linear = DataLoader(train_data_linear, batch_size=args.local_bs, shuffle=True)
     test_loader_linear = DataLoader(test_data_linear, batch_size=args.local_bs, shuffle=True)
 
-    net = linear.Net(num_class=len(train_data_linear.classes), net = global_model).to(device)
-    for param in net.f.parameters():
-        param.requires_grad = False
-    optimizer = optim.Adam(net.fc.parameters(), lr=1e-3, weight_decay=1e-6)
 
 
-    for epoch in range(1, args.linear_epochs + 1):
+
+    bst_acc = -1
+    description = "inference acc={:.4f}% loss={:.2f}, best_acc = {:.2f}%"
+    for epoch in tqdm(range(args.epochs)):
+        local_weights = []
+        global_model.train()
+        m = max(int(args.frac * args.num_users), 1)
+        # m = 1
+        idxs_users = np.random.choice(range(args.num_users), m, replace=False)
+        for idx in idxs_users:
+            local_model = LocalUpdate(args=args, dataset=train_dataset,
+                                      idxs=user_groups[idx])
+            w = local_model.train(net = copy.deepcopy(global_model), batch_size=args.local_bs)
+            local_weights.append(copy.deepcopy(w))
+
+        # update global weights
+        global_weights = average_weights(local_weights)
+        # global_weights = local_weights[0]
+
+
+        # update global weights
+        global_model.load_state_dict(global_weights)
+
+        # test_acc, test_loss = inference(global_model, test_loader)
+
+        # test_acc_1, test_acc_5 = test(global_model, memory_loader, test_loader)
+
+
+        # tf_writer.add_scalar('test_acc', test_acc, epoch)
+        # tf_writer.add_scalar('test_loss', test_loss, epoch)
+
+        # output_log = 'After {} global rounds, Test acc: {}, inference loss: {}'.format(
+        #     epoch + 1, test_acc, test_loss)
+
+
+
+        # output_log = 'After {} global rounds, Test acc1: {}, Test acc5: {}'.format(
+        #     epoch + 1, test_acc_1, test_acc_5)
+        
+        # print(output_log)
+        
+        # logger_file.write(output_log + '\n')
+        # logger_file.flush()
+
+
+        # is_best = test_acc_1 > bst_acc
+        # bst_acc = max(bst_acc, test_acc_1)
+        # print(description.format(test_acc, test_loss, bst_acc))
+        
+        # save_checkpoint(global_model.state_dict(), is_best)
+        
+        net = linear.Net(num_class=len(train_data_linear.classes), net = global_model).to(device)
+        for param in net.f.parameters():
+            param.requires_grad = False
+        optimizer = optim.Adam(net.fc.parameters(), lr=1e-3, weight_decay=1e-6)
+
+
+        # for epoch in range(1, args.linear_epochs + 1):
         train_loss, train_acc_1, train_acc_5 = linear.train_val(net, train_loader_linear, optimizer)
-        results['train_loss'].append(train_loss)
-        results['train_acc@1'].append(train_acc_1)
-        results['train_acc@5'].append(train_acc_5)
+        # results['train_loss'].append(train_loss)
+        # results['train_acc@1'].append(train_acc_1)
+        # results['train_acc@5'].append(train_acc_5)
         test_loss, test_acc_1, test_acc_5 = linear.train_val(net, test_loader_linear, None)
-        results['test_loss'].append(test_loss)
-        results['test_acc@1'].append(test_acc_1)
-        results['test_acc@5'].append(test_acc_5)
+        # results['test_loss'].append(test_loss)
+        # results['test_acc@1'].append(test_acc_1)
+        # results['test_acc@5'].append(test_acc_5)
         
         print('{} : {} {} {}'.format(epoch, test_loss, test_acc_1, test_acc_5))
+        
+
+    # results = {'train_loss': [], 'train_acc@1': [], 'train_acc@5': [],
+    #         'test_loss': [], 'test_acc@1': [], 'test_acc@5': []}
+    
+    
+
+    # net = linear.Net(num_class=len(train_data_linear.classes), net = global_model).to(device)
+    # for param in net.f.parameters():
+    #     param.requires_grad = False
+    # optimizer = optim.Adam(net.fc.parameters(), lr=1e-3, weight_decay=1e-6)
+
+
+    # for epoch in range(1, args.linear_epochs + 1):
+    #     train_loss, train_acc_1, train_acc_5 = linear.train_val(net, train_loader_linear, optimizer)
+    #     results['train_loss'].append(train_loss)
+    #     results['train_acc@1'].append(train_acc_1)
+    #     results['train_acc@5'].append(train_acc_5)
+    #     test_loss, test_acc_1, test_acc_5 = linear.train_val(net, test_loader_linear, None)
+    #     results['test_loss'].append(test_loss)
+    #     results['test_acc@1'].append(test_acc_1)
+    #     results['test_acc@5'].append(test_acc_5)
+        
+    #     print('{} : {} {} {}'.format(epoch, test_loss, test_acc_1, test_acc_5))
 
     
 """
