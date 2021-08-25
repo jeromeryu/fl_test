@@ -69,6 +69,9 @@ class LocalUpdate(object):
                 feature_2, out_2 = net(pos_2)
                 # Barlow Twins
                 
+                print("p1", out_1)
+                print("p2", out_2)
+                
                 # normalize the representations along the batch dimension
                 out_1_norm = (out_1 - out_1.mean(dim=0)) / out_1.std(dim=0)
                 out_2_norm = (out_2 - out_2.mean(dim=0)) / out_2.std(dim=0)
@@ -87,7 +90,7 @@ class LocalUpdate(object):
                 #     # encouraging off_diag to be negative ones
                 #     off_diag = off_diagonal(c).add_(1).pow_(2).sum()
                 loss = on_diag + 0.0078125 * off_diag
-                
+                print("loss", loss)                
 
                 train_optimizer.zero_grad()
                 loss.backward()
