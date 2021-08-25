@@ -57,7 +57,9 @@ class LocalUpdate(object):
 
 
     def train(self, net, batch_size):
-        train_optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-6)
+        # train_optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-6)
+        train_optimizer = torch.optim.SGD(net.parameters(), lr=1e-1, weight_decay=1e-4)
+
         net.train()
         # total_loss, total_num, train_bar = 0.0, 0, tqdm(self.trainloader)
         for iter in range(self.args.local_ep):
@@ -76,15 +78,20 @@ class LocalUpdate(object):
                 out_1_norm = (out_1 - out_1.mean(dim=0)) / out_1.std(dim=0)
                 out_2_norm = (out_2 - out_2.mean(dim=0)) / out_2.std(dim=0)
                 
+                print("out_1_norm", out_1_norm)
+                print("out_2_norm", out_2_norm)
+                
                 # cross-correlation matrix
                 c = torch.matmul(out_1_norm.T, out_2_norm) / batch_size #batch_size
-
+                print("c", c)
                 # loss
                 on_diag = torch.diagonal(c).add_(-1).pow_(2).sum()
+                print("on_diag", on_diag)
                 # if corr_neg_one is False:
                 #     # the loss described in the original Barlow Twin's paper
                 #     # encouraging off_diag to be zero
                 off_diag = off_diagonal(c).pow_(2).sum()
+                print("off_diage", off_diag)
                 # else:
                 #     # inspired by HSIC
                 #     # encouraging off_diag to be negative ones
